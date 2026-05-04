@@ -40,21 +40,51 @@ fadeEls.forEach(el => {
   fadeObserver.observe(el);
 });
 
-// ── Contact form
+// ── Contact form with Web3Forms integration
 document.getElementById('contactForm').addEventListener('submit', function(e) {
   e.preventDefault();
-  const btn = this.querySelector('button[type="submit"]');
-  btn.textContent = 'Sending...';
+
+  const btn = document.getElementById('submitBtn');
+  const btnText = btn.querySelector('.btn-text');
+  const btnLoading = btn.querySelector('.btn-loading');
+  const successMsg = document.getElementById('formSuccess');
+  const errorMsg = document.getElementById('formError');
+
+  // Reset messages
+  successMsg.style.display = 'none';
+  errorMsg.style.display = 'none';
+
+  // Show loading state
+  btnText.style.display = 'none';
+  btnLoading.style.display = 'inline';
   btn.disabled = true;
-  setTimeout(() => {
-    btn.textContent = 'Send Message ✉️';
+
+  const formData = new FormData(this);
+
+  fetch('https://api.web3forms.com/submit', {
+    method: 'POST',
+    body: formData
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      successMsg.style.display = 'block';
+      this.reset();
+      setTimeout(() => { successMsg.style.display = 'none'; }, 6000);
+    } else {
+      errorMsg.style.display = 'block';
+      setTimeout(() => { errorMsg.style.display = 'none'; }, 6000);
+    }
+  })
+  .catch(() => {
+    errorMsg.style.display = 'block';
+    setTimeout(() => { errorMsg.style.display = 'none'; }, 6000);
+  })
+  .finally(() => {
+    btnText.style.display = 'inline';
+    btnLoading.style.display = 'none';
     btn.disabled = false;
-    document.getElementById('formSuccess').style.display = 'block';
-    this.reset();
-    setTimeout(() => {
-      document.getElementById('formSuccess').style.display = 'none';
-    }, 4000);
-  }, 1200);
+  });
 });
 
 // ── Active nav link highlight on scroll
@@ -70,8 +100,8 @@ window.addEventListener('scroll', () => {
   });
 });
 
-// ── Collapsible sections (Skills, Projects, Contact)
-const toggleSections = ['skills', 'projects', 'contact'];
+// ── Collapsible sections (Skills, Projects)
+const toggleSections = ['skills', 'projects'];
 
 // Hide them on load
 toggleSections.forEach(id => {
@@ -115,3 +145,18 @@ document.querySelectorAll('a[href^="#"]').forEach(link => {
     });
   }
 });
+
+// ── Typing effect for hero title
+const typeText = "Web-site Developer & Problem Solver";
+const heroTitle = document.querySelector('.hero-title');
+let i = 0;
+function typeWriter() {
+  if (i < typeText.length) {
+    heroTitle.innerHTML += typeText.charAt(i);
+    i++;
+    setTimeout(typeWriter, 100);
+  } else {
+    heroTitle.innerHTML += '<span class="cursor">|</span>';
+  }
+}
+typeWriter();
